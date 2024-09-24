@@ -1,5 +1,0 @@
-def print_phrase():
-	print('Hello, World!')
-def main():
-	print_phrase()
-main()
