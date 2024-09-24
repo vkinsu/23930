@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <ulimit.h>
 #include <sys/resource.h>
-
+//extern char **environment;
 int main(int argc,char **argv,char **envp){
     setlocale(LC_ALL,"rus");
     rlimit rlim;
