@@ -9,8 +9,8 @@ int main() {
     uid_t real_uid = getuid();
     uid_t effective_uid = geteuid();
 
-    printf("Real UID: %d\n", real_uid);
-    printf("Efficient UID: %d\n", effective_uid);
+    printf("Current UID: %d\n", getuid());
+    printf("Needed UID: %d\n", geteuid());
 
 
     FILE *file = fopen("file.txt", "r");
@@ -29,17 +29,13 @@ int main() {
 
     printf("Real and efficient UID are now the same.\n");
 
-
-    real_uid = getuid();
-    effective_uid = geteuid();
-
-    printf("Real UID: %d\n", real_uid);
-    printf("Efficient UID: %d\n", effective_uid);
+    printf("Current UID: %d\n", getuid());
+    printf("Needed UID: %d\n", geteuid());
 
     file = fopen("file.txt", "r");
-    if (file == NULL) {
-        perror("File opening error!\n");
-    } else {
+
+    if (file == NULL) perror("File opening error!\n");
+    else {
         printf("File opened succesfully!\n");
         fclose(file);
     }
