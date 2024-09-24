@@ -1,3 +1,3 @@
 all:
-	gcc ex_time.c -o Californication
+	gcc -Wall ex_time.c -o Californication
 	./Californication
