@@ -14,9 +14,9 @@ int main() {
 
 
     FILE *file = fopen("file.txt", "r");
-    if (file == NULL) {
-        perror("File opening error!\n");
-    } else {
+
+    if (file == NULL) perror("File opening error!\n");
+    else {
         printf("File opened succesfully!\n");
         fclose(file);
     }
