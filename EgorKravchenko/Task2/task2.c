@@ -1,20 +1,18 @@
-#include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+
 extern char *tzname[];
 
-void main() {
+int main() {
+    putenv("TZ=America/Los_Angeles");
     time_t now;
-    struct tm *sp;
-    setenv("TZ", "PST8PDT", 1);
-    tzset();
-    (void) time(&now);
-    printf("%s", ctime( &now ) );
-    sp = localtime(&now);
+    (void)time(&now);
+    printf("%s", ctime(&now));
+    const struct tm *sp = localtime(&now);
     printf("%d/%d/%02d %d:%02d %s\n",
-    sp->tm_mon + 1, sp->tm_mday,
-    sp->tm_year + 1900, sp->tm_hour,
-    sp->tm_min, tzname[sp->tm_isdst]);
-    exit(0);
+        sp->tm_mon + 1, sp->tm_mday,
+        sp->tm_year - 100, sp->tm_hour,
+        sp->tm_min, tzname[sp->tm_isdst]);
+    exit (0);
 }
