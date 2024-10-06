@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <linux/limits.h>
+#include <limits.h>
 #include <ulimit.h>
 #include <getopt.h>
 #include <sys/resource.h>
@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
                 printf("\tCurrent process ID: %d\n", getpid());
                 printf("\tParent process ID: %d\n", getppid());
                 printf("\tProcess group ID: %d\n", getpgid(0));
+		break;
             case 's':
                 if (setpgid(0, getpgid(0)) == -1) {
                     printf("-s: Error on handling process change\n");
