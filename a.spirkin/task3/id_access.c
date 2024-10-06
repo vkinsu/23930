@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 {
     opening(argv[1]);
 
-    if (setuid(geteuid()) == -1) {
+    if (setuid(getuid()) == -1) {
         perror("Error on handling UID update.\n");
     }
     else {
