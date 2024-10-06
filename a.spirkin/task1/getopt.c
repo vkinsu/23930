@@ -52,16 +52,16 @@ int main(int argc, char *argv[])
 		break;
             case 's':
                 if (setpgid(0, getpgid(0)) == -1) {
-                    printf("-s: Error on handling process change\n");
+                    perror("-s: Error on handling process change\n");
                 }
                 else {
                     printf("-s: Changed process\n");
                 }
                 break;
             case 'u': 
-                ulim = ulimit(UL_GETFSIZE, 0);
+                ulim = setrlimit(RLIMIT_FSIZE, &rlim);
                 if (ulim == 0) {
-                    printf("-u: Error on getting ulimit size\n");
+                    perror("-u: Error on getting ulimit size\n");
                 }
                 else {
                     printf("-u: Ulimit equals: %ld\n", ulim);
@@ -74,51 +74,40 @@ int main(int argc, char *argv[])
                 printf("\tcore files hard limit: %4ld\n", rlim.rlim_max);
                 break;
             case 'V':
-                if (putenv(optarg) == 0) {
-                    printf("-V: Added environment variable: %s\n", optarg);
+                char* env;
+                char* value;
+
+                env = (char*)malloc(ENV_LENGTH * sizeof(char));
+
+                for (int i = 0; i < ENV_LENGTH; i++) {
+                    if (optarg[i] != '=') {
+                        env[i] = optarg[i];
+                        value = &optarg[i];
+                    }
+                    else break;
+                }
+                value += 2;
+
+                if (env && value) {
+                    if (setenv(env, value, 1) == 0 && getenv(env)) {
+                        printf("-V: Added environment variable: %s=%s\n", env, value);
+                    }
+                    else {
+                        perror("-V: Error on handling setenv().\n");
+                    }
                 }
                 else {
-                    printf("-V: Error on handling putenv()\n");
+                    perror("-V: Invalid environment variable format.\n");
                 }
-                break;
 
-            // The code below was worth trying so it's here.
-                // char* env;
-                // char* value;
-
-                // env = (char*)malloc(ENV_LENGTH * sizeof(char));
-
-                // for (int i = 0; i < ENV_LENGTH; i++) {
-                //     if (optarg[i] != '=') {
-                //         env[i] = optarg[i];
-                //         value = &optarg[i];
-                //     }
-                //     else break;
-                // }
-                // value += 2;
-                // printf("%s", env);
-                // printf("%s", value);
-
-                // if (env && value) {
-                //     if (setenv(env, value, 1) == 0) {
-                //         printf("-V: Added environment variable: %s=%s\n", env, value);
-                //     }
-                //     else {
-                //         printf("-V: Error on handling setenv().\n");
-                //     }
-                // }
-                // else {
-                //     printf("-V: Invalid environment variable format.\n");
-                // }
-
-                // free(env);
+                free(env);
                 break;
             case 'C':
                 getrlimit(RLIMIT_CORE, &rlim);
                 rlim.rlim_cur = atoi(optarg);
                 rlim.rlim_max = -1;
                 if (setrlimit(RLIMIT_CORE, &rlim) == -1) {
-                    printf("-C: Error on handling core file size change");
+                    perror("-C: Error on handling core file size change");
                 }
                 else {
                     printf("-C: Core file size changed to %ld", rlim.rlim_cur);
@@ -127,7 +116,7 @@ int main(int argc, char *argv[])
             case 'U':
                 ulim = atoi(optarg);
                 if (ulim == 0) {
-                    printf("-U: Wrong value format");
+                    perror("-U: Wrong value format");
                 }
                 else {
                     printf("-U: Set ulimit to %ld", ulimit(UL_SETFSIZE, ulim));
@@ -136,6 +125,7 @@ int main(int argc, char *argv[])
             case '?':
                 printf("Invalid option is %c\n", optopt);
                 invalid++;
+                break;
         }
     }
 
