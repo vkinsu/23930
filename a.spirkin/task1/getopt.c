@@ -73,9 +73,9 @@ int main(int argc, char *argv[])
                 printf("\tcore files soft limit: %4ld\n", rlim.rlim_cur);
                 printf("\tcore files hard limit: %4ld\n", rlim.rlim_max);
                 break;
-            case 'V':
-                char* env;
-                char* value;
+            case 'V': ;
+                char *env;
+                char *value;
 
                 env = (char*)malloc(ENV_LENGTH * sizeof(char));
 
