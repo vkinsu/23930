@@ -3,10 +3,9 @@
 #include <string.h>
 
 int main() {
-
+int cnt = 0;
     printf("Enter your lines:\n");
     char* buffer = calloc(4096, sizeof(char));
-    int cnt = 0;
     char** lines = calloc(cnt + 1, sizeof(char*));
 
     while (fgets(buffer, 4096, stdin)) {
