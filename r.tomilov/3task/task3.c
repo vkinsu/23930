@@ -1,34 +1,54 @@
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <stdio.h>
+#include <string.h>
 
-void printUserID() {
-    printf ("Real User ID = %d\n",getuid());
-    printf ("Effective User ID = %d\n\n",geteuid());
-}
-
-void fileOpening(char *file) {
-    FILE* f = fopen(file, "r");
-    if (f == NULL) {
-        perror("Failed to open the file");
-        printf("\n");
-    } else {
-        fclose(f);
-    }
-}
+#define MAX_FILENAME_LENGTH 255
 
 int main() {
-    printUserID();
+    char filename[MAX_FILENAME_LENGTH];
 
-    char file[1000] = "";
-    printf("Write filename:\n");
-    gets(file);
+    uid_t real_uid = getuid();
+    uid_t effective_uid = geteuid();
 
-    fileOpening(file);
+    printf("Real UID: %d\n", real_uid);
+    printf("Effective UID: %d\n", effective_uid);
 
-    setuid(geteuid());
+    printf("Enter the filename: ");
+    if (fgets(filename, sizeof(filename), stdin) == NULL) {
+        perror("Error reading filename");
+        return EXIT_FAILURE;
+    }
 
-    printUserID();
-    fileOpening(file);
-    return 0;
+    filename[strcspn(filename, "\n")] = '\0';
+
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        return EXIT_FAILURE;
+    }
+
+    fclose(file);
+
+    if (setuid(getuid()) == -1) {
+        perror("setuid failed");
+        return EXIT_FAILURE;
+    }
+
+    real_uid = getuid();
+    effective_uid = geteuid();
+    
+    printf("Real UID after file operations: %d\n", real_uid);
+    printf("Effective UID after file operations: %d\n", effective_uid);
+
+    FILE *file2 = fopen(filename, "w");
+    if (file2 == NULL) {
+        perror("Error opening file");
+        return EXIT_FAILURE;
+    }
+
+    fclose(file2);
+
+    return EXIT_SUCCESS;
 }
