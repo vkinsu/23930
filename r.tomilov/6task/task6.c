@@ -18,6 +18,7 @@ void handle_alarm(int sig)
 {
     char c;
     lseek(file, 0, SEEK_SET);
+    printf("\n");
     while (read(file, &c, 1) > 0) 
     {
         write(1, &c, 1);
@@ -33,6 +34,8 @@ int main(int argc, char *argv[])
 
     int length = 0, exp_line_number;
 
+    char lol[10];
+
     if((file =  open(argv[1], O_RDONLY)) == -1) 
     {
         printf("Failed to open file.");
@@ -45,10 +48,12 @@ int main(int argc, char *argv[])
     {
         if(c == '\n') 
         {
+            printf("line pos: %ld ", lines_position[line_number]);
             length++;
-            line_length[line_number++] = length;
+            line_length[line_number++] = length - 1;
             lines_position[line_number] = lseek(file, 0L, 1);
             length = 0;
+            printf("lenghth: %i \n", line_length[line_number - 1]);
         }
         else
         {
@@ -60,24 +65,43 @@ int main(int argc, char *argv[])
         signal(SIGALRM, handle_alarm);
         alarm(5);
 
-        printf("Enter line number: ");
+        printf("\n Enter line number: ");
 
-        if (scanf("%d", &exp_line_number) == 1) alarm(0);
+        if (scanf("%s", lol) == 1) alarm(0);
 
-        if(exp_line_number == 0)
+        int valid_input = 1;
+        for (int i = 0; i < strlen(lol); i++) 
         {
-            exit(0);
+            if (!isdigit(lol[i])) 
+            {
+                valid_input = 0;
+                break;
+            }
         }
-            
-        lseek(file, lines_position[exp_line_number], 0);
 
-        if(read(file, buffer, line_length[exp_line_number]))
+        if (valid_input)
         {
-            write(1, buffer, line_length[exp_line_number]);
-        }   
+            exp_line_number = atoi(lol);
+
+            if(exp_line_number == 0)
+            {
+               exit(0);
+            }
+            
+            lseek(file, lines_position[exp_line_number], 0);
+
+            if(read(file, buffer, line_length[exp_line_number]))
+            {
+                write(1, buffer, line_length[exp_line_number]);
+            }   
+            else
+            {
+                 printf("Invalid line number\n");
+            }
+        }
         else
         {
-             printf("Invalid line number\n");
+            printf("Invalid input: please enter a valid number\n");
         }
     }
 }
