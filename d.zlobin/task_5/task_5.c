@@ -39,7 +39,7 @@ int build_line_table(int fd, LineInfo **table, int *num_lines) {
                     }
                 }
                 (*table)[line_count].offset = offset;
-                (*table)[line_count].length = current_length;
+                (*table)[line_count].length = (current_length == 1) ? 0 : current_length;
                 offset += current_length;
                 current_length = 0;
                 line_count++;
@@ -52,7 +52,6 @@ int build_line_table(int fd, LineInfo **table, int *num_lines) {
 }
 
 void print_line(int fd, LineInfo *table, int line_number) {
-    char *line;
     if (line_number < 0) {
         printf("Invalid line number.\n");
         return;
@@ -63,7 +62,12 @@ void print_line(int fd, LineInfo *table, int line_number) {
         return;
     }
 
-    line = malloc(table[line_number].length + 1);
+    if (table[line_number].length == 0) {
+        printf("Line %d:\n", line_number + 1);
+        return;
+    }
+
+    char *line = malloc(table[line_number].length + 1);
     if (line == NULL) {
         perror("Memory allocation error");
         return;
@@ -109,7 +113,13 @@ int main(int argc, char *argv[]) {
     int line_number;
     while (1) {
         printf("Enter line number (0 to exit): ");
-        scanf("%d", &line_number);
+        int result = scanf("%d", &line_number);
+
+        if (result != 1) {
+            printf("Invalid input. Please enter a valid line number.\n");
+            while (getchar() != '\n');
+            continue;
+        }
 
         if (line_number == 0) {
             break;

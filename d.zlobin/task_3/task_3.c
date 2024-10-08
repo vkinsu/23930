@@ -16,7 +16,7 @@ int main() {
     FILE *file;
     print_ids();
 
-    file = fopen("file", "r");
+    file = fopen("file.txt", "r");
     if (file == NULL) {
         perror("File opening error!\n");
     } else {
@@ -32,7 +32,7 @@ int main() {
     printf("\nAfter setuid() method using:\n");
     print_ids();
     
-    file = fopen("file", "r");
+    file = fopen("file.txt", "r");
     if (file == NULL) {
         perror("File opening error after setuid() method using!\n");
     } else {
