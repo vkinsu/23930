@@ -1,21 +1,25 @@
     #include <stdio.h>
     #include <unistd.h>
     #include <stdlib.h>
-    #include <linux/limits.h>
     #include <string.h>
     #include <sys/resource.h>
 
     extern char *optarg;  
     extern int optind;    
     extern int optopt;    
+    extern char **environ;
 
     int main(int argc, char *argv[]) {
         char options[] = "ispuU:cC:dvV:";  /* valid options */
-        int c, invalid = 0, dflg = 0, fflg = 0, gflg = 0;
+        int c;
         struct rlimit process;
-        char *f_ptr = NULL, *g_ptr = NULL;
+        char cwd[4096];
+        struct rlimit r;
+        struct rlimit rl;
+        char **env = environ;
+        long new_limit;
+        unsigned long core_size_renewed;
 
-        printf("argc equals %d\n", argc);
         while ((c = getopt(argc, argv, options)) != -1) { 
             switch (c) {
             case 'i':
@@ -25,7 +29,6 @@
                 printf("Effective GID: %d\n", getegid());
                 break;
             case 'd':
-                char cwd[PATH_MAX];
                 if (getcwd(cwd, sizeof(cwd)) != NULL) 
                 {
                     printf("Current working directory: %s\n", cwd);
@@ -34,7 +37,6 @@
                 {
                     perror("getcwd");
                 }
-                dflg++;
                 break;
 
             case 's':
@@ -45,7 +47,6 @@
                 break;
 
             case 'u':
-                struct rlimit r;
                 if (getrlimit(RLIMIT_FSIZE, &r) == 0) {
                     printf("Current file size limit: %lu bytes\n", r.rlim_cur);
                 }
@@ -55,13 +56,11 @@
                 break;
 
             case 'U':
-                long new_limit = atol(optarg);
-                struct rlimit rl;
+                new_limit = atol(optarg);
                 if (getrlimit(RLIMIT_FSIZE, &rl) == -1) {
                     perror("getrlimit");
                 } 
                 else {
-                    // Устанавливаем новый лимит
                     rl.rlim_cur = new_limit;
                     if (setrlimit(RLIMIT_FSIZE, &rl) == -1) {
                         perror("setrlimit");
@@ -82,7 +81,7 @@
                 break;
                 
             case 'C':
-                unsigned long core_size_renewed = strtol(optarg, NULL, 10);
+                core_size_renewed = strtol(optarg, NULL, 10);
                 if (core_size_renewed <= 0) {
                     perror("Failed to set core size\n");
                     break;
@@ -104,8 +103,6 @@
                 break;
 
             case 'v':
-                extern char **environ;
-                char **env = environ;
                 while (*env) {
                     printf("%s\n", *env++);
                 }
