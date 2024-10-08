@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <errno.h>
+#include <ctype.h>
 
 #define MAX_LINE_LENGTH 256
 
@@ -15,11 +16,11 @@ void handle_timeout(int sig) {
     char buf[MAX_LINE_LENGTH + 1];
     printf("\nTime is up! Printing the entire file:\n");
 
-    lseek(fd, 0, SEEK_SET);  // Перемещаемся в начало файла
+    lseek(fd, 0, SEEK_SET); 
 
     int bytes_read;
     while ((bytes_read = read(fd, buf, MAX_LINE_LENGTH)) > 0) {
-        write(1, buf, bytes_read);  // Печатаем содержимое файла
+        write(1, buf, bytes_read); 
     }
 
     close(fd);
@@ -27,7 +28,7 @@ void handle_timeout(int sig) {
 }
 
 int main(int argc, char *argv[]) {
-    long lines_pos[500];// Массив для позиций строк
+    long lines_pos[500];
     int line_ln[500];
     int i = 1, j = 0, line_number;
     char c, buf[MAX_LINE_LENGTH + 1];
@@ -46,24 +47,40 @@ int main(int argc, char *argv[]) {
 
     signal(SIGALRM, handle_timeout);
 
-    lines_pos[1] = 0L; // Первая строка начинается с нулевого отступа
+    lines_pos[1] = 0L; 
 
-    // Считывание файла для построения таблицы строк
     while (read(fd, &c, 1)) {
         if (c == '\n') {
-            line_ln[i] = j + 1;  // Длина строки с учётом '\n'
-            lines_pos[++i] = lseek(fd, 0L, SEEK_CUR);  // Сохраняем смещение начала новой строки
-            j = 0;  // Обнуляем счетчик символов для новой строки
+            line_ln[i] = j + 1; 
+            lines_pos[++i] = lseek(fd, 0L, SEEK_CUR);  
+            j = 0; 
         } else {
-            j++;  // Увеличиваем длину текущей строки
+            j++;
         }
     }
 
-    // Основной цикл запроса номера строки
     while (1) {
-        alarm(5);
         printf("Enter line number (0 to exit): ");
-        scanf("%d", &line_number);
+        alarm(5);
+        if (fgets(input_buf, sizeof(input_buf), stdin) == NULL) {
+                printf("Error reading input.\n");
+                continue;
+            }
+
+            int valid_input = 1; 
+            for (int k = 0; k < strlen(input_buf) - 1; k++) { 
+                if (!isdigit(input_buf[k])) {
+                    valid_input = 0; 
+                    break;
+                }
+            }
+
+            if (!valid_input) {
+                printf("Invalid input. Please enter a number.\n");
+                continue;
+            }
+
+            line_number = atoi(input_buf); 
         alarm(0);
 
         if (line_number == 0) {
@@ -76,14 +93,12 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        // Перемещение на начало нужной строки
         lseek(fd, lines_pos[line_number], SEEK_SET);
 
-        // Чтение строки и вывод
         int bytes_read = read(fd, buf, line_ln[line_number]);
         if (bytes_read > 0) {
-            buf[bytes_read] = '\0';  // Завершаем строку нулевым символом
-            printf("%s", buf);  // Печатаем строку
+            buf[bytes_read] = '\0';  
+            printf("%s", buf); 
         } else {
             printf("Error reading line\n");
         }
