@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <signal.h>
 #include <string.h>
-#include <ctype.h>  // Для isdigit и других проверок
 
 #define MAX_LINES 500
 
@@ -34,16 +33,17 @@ void handle_alarm(int sig)
     exit(0);
 }
 
+
 int main(int argc, char *argv[]) 
 {
     char *mapped;
     struct stat sb;
-
-    int length = 0;
-    int exp_line_number;
+    
     char lol[10];
 
-    if((file = open(argv[1], O_RDONLY)) == -1) 
+    int length = 0, exp_line_number;
+
+    if((file =  open(argv[1], O_RDONLY)) == -1) 
     {
         printf("Failed to open file.");
         exit(1);
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
             line_number++; 
             length = 0; 
             printf("line pos: %ld ", lines_position[line_number - 1]);
-            printf("length: %i \n", line_length[line_number - 1]);
+            printf("lenghth: %i \n", line_length[line_number - 1] - 1);
         } 
         else 
         {
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         alarm(5);
 
         printf("Enter line number: ");
-        
+
         if (scanf("%s", lol) == 1) alarm(0);
 
         int valid_input = 1;
@@ -95,19 +95,19 @@ int main(int argc, char *argv[])
             }
         }
 
-        if (valid_input) 
+        if(valid_input)
         {
             exp_line_number = atoi(lol);
-
-            if (exp_line_number == 0)
+            
+            if(exp_line_number == 0)
             {
                 exit(0);
             }
-
-            if (exp_line_number >= 1 && exp_line_number < line_number)
+        
+            if(exp_line_number >= 1 && exp_line_number < line_number)
             {
-                write(1, mapped + lines_position[exp_line_number - 1], line_length[exp_line_number - 1]);
-            }
+                write(1, mapped + lines_position[exp_line_number - 1], line_length[exp_line_number]);
+            }   
             else
             {
                 printf("Invalid line number\n");
@@ -118,7 +118,6 @@ int main(int argc, char *argv[])
             printf("Invalid input: please enter a valid number\n");
         }
     }
-
     munmap(mapped, sb.st_size);
     close(file);
 }
