@@ -29,7 +29,9 @@ void print_lines(int fd, long* lines_placement, int* lines_len) {
     char bf[255];
     while (1) {
         printf("\nline number(0 to exit): ");
-        scanf("%d", &line_number);
+        if (scanf("%d", &line_number) == '\0') {
+            break;
+        }
 
         if (line_number == 0) {
             break;
@@ -37,10 +39,9 @@ void print_lines(int fd, long* lines_placement, int* lines_len) {
 
         if (line_number < 0 || line_number > LINES_AMOUNT - 1) {
             perror("line number is not valid.\n");
-        }
-        else {
-            lseek(fd, lines_placement[line_number], 0);
-            if(read(fd, bf, lines_len[line_number])) {
+        } else {
+            lseek(fd, lines_placement[line_number], SEEK_SET);
+            if (read(fd, bf, lines_len[line_number])) {
                 write(1, bf, lines_len[line_number]);
             }
         }

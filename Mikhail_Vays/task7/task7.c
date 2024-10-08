@@ -51,7 +51,7 @@ void print_lines(char* file_content, long* lines_placement, int* lines_len) {
         alarm(5);
 
         printf("\nline number(0 to exit): ");
-        if (scanf("%d", &line_number) == EOF) {
+        if (scanf("%d", &line_number) == '\0') {
             break;
         }
 
