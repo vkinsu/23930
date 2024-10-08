@@ -9,6 +9,10 @@
 #include <errno.h>
 
 int main(int argc,char **argv){
+    if(argc != 2){
+        printf("команда принимает один аргумент - имя файла\n");
+        return -1;
+    }
     seteuid(5000);
     setlocale(LC_ALL,"rus");
     FILE *file;

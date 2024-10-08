@@ -11,18 +11,24 @@ int main() {
     tail = head;
     char* inpstr;
     do{
-        inpstr = (char*)malloc(100 + 1);
-        fgets(inpstr, 101, stdin);
+        inpstr = (char*)malloc(1000 + 1);
+        fgets(inpstr, 1000, stdin);
+        for(int i = 0; inpstr[i] != '\0'; i++){
+            if(inpstr[i] == '\n'){
+                inpstr[i] ='\0';
+                break;
+            }
+        }
         p->str = inpstr;
         p->next = (list*)malloc(sizeof(list));
         p = p->next;
         p->next = NULL;
     } while (inpstr == NULL || inpstr[0] != '.');
     tail = p;
-
+    printf("---------------\n");
     p = head;
-    while (p != tail) {
-        printf("%s\n", p->str);
+    while (p->str[0] != '.') {
+        if(p->str[0] != '\0')printf("%s\n", p->str);
         if(p->next == NULL)break;
         p = p->next;
     } 
