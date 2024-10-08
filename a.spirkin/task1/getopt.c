@@ -64,14 +64,14 @@ int main(int argc, char *argv[])
                     perror("-u: Error on getting ulimit size\n");
                 }
                 else {
-                    printf("-u: Ulimit equals: %ld\n", ulim);
+                    printf("-u: Ulimit equals: %lu\n", ulim);
                 }
                 break;
             case 'c':
                 getrlimit(RLIMIT_CORE, &rlim);
                 printf("-c: Getting core file limits:\n");
-                printf("\tcore files soft limit: %4ld\n", rlim.rlim_cur);
-                printf("\tcore files hard limit: %4ld\n", rlim.rlim_max);
+                printf("\tcore files soft limit: %lu\n", rlim.rlim_cur);
+                printf("\tcore files hard limit: %lu\n", rlim.rlim_max);
                 break;
             case 'V': ;
                 char *env;
@@ -114,12 +114,13 @@ int main(int argc, char *argv[])
                 }
                 break;
             case 'U':
-                ulim = atoi(optarg);
+                ulim = strtol(optarg, NULL, 10);
+                rlim.rlim_cur = ulim;
                 if (ulim == 0) {
                     perror("-U: Wrong value format");
                 }
                 else {
-                    printf("-U: Set ulimit to %ld", ulimit(UL_SETFSIZE, ulim));
+                    printf("-U: Set ulimit to %lu", ulimit(UL_SETFSIZE, ulim));
                 }
                 break;
             case '?':
