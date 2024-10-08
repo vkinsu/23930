@@ -8,7 +8,7 @@
 #include <string.h>
 #include <errno.h>
 
-void print_ids_printing() {
+void ids_printing() {
     uid_t real_uid = getuid();
     uid_t effective_uid = geteuid();
     gid_t real_gid = getgid();
@@ -17,11 +17,11 @@ void print_ids_printing() {
     printf("Real GID: %d, Effective GID: %d\n", real_gid, effective_gid);
 }
 
-void print_process_info_printing() {
+void process_info_printing() {
     printf("PID: %d, PPID: %d, PGID: %d\n", getpid(), getppid(), getpgrp());
 }
 
-void print_ulimit_printing() {
+void ulimit_printing() {
     struct rlimit limit;
     if (getrlimit(RLIMIT_FSIZE, &limit) == -1) {
         perror("Failed to get ulimit");
@@ -53,11 +53,11 @@ void set_ulimit_printing(char *new_ulimit) {
         perror("Failed to set file size limit");
     } else {
         printf("New file size limit set to: %ld bytes\n", value);
-	print_ulimit_printing();
+        ulimit_printing();
     }
 }
 
-void print_core_size_printing() {
+void core_size_printing() {
     struct rlimit core_limit;
     if (getrlimit(RLIMIT_CORE, &core_limit) == -1) {
         perror("Failed to get core file size limit");
@@ -81,11 +81,11 @@ void set_core_size_printing(char *size) {
         perror("Failed to set core file size limit");
     } else {
         printf("New core file size limit: %ld bytes\n", value);
-	print_core_size_printing();
+        core_size_printing();
     }
 }
 
-void print_working_directory_printing() {
+void working_directory_printing() {
     char cwd[PATH_MAX];
     if (getcwd(cwd, sizeof(cwd)) != NULL) {
         printf("Current working directory: %s\n", cwd);
@@ -94,7 +94,7 @@ void print_working_directory_printing() {
     }
 }
 
-void print_environment_printing() {
+void environment_printing() {
     extern char **environ;
     for (char **env = environ; *env != 0; env++) {
         printf("%s\n", *env);
@@ -114,7 +114,7 @@ void set_environment_variable_printing(char *var) {
         perror("Failed to set environment variable");
     } else {
         printf("Environment variable %s set to %s\n", name, value);
-	print_environment_printing();
+        environment_printing();
     }
 }
 
@@ -124,7 +124,7 @@ void process_options(int argc, char *argv[]) {
     while ((opt = getopt(argc, argv, "ispucC:U:dvV:")) != -1) {
         switch (opt) {
             case 'i':
-                print_ids_printing();
+                ids_printing();
                 break;
             case 's':
                 if (setpgid(0, 0) == -1) {
@@ -134,25 +134,25 @@ void process_options(int argc, char *argv[]) {
                 }
                 break;
             case 'p':
-                print_process_info_printing();
+                process_info_printing();
                 break;
             case 'u':
-                print_ulimit_printing();
+                ulimit_printing();
                 break;
             case 'U':
                 set_ulimit_printing(optarg);
                 break;
             case 'c':
-                print_core_size_printing();
+                core_size_printing();
                 break;
             case 'C':
                 set_core_size_printing(optarg);
                 break;
             case 'd':
-                print_working_directory_printing();
+                working_directory_printing();
                 break;
             case 'v':
-                print_environment_printing();
+                environment_printing();
                 break;
             case 'V':
                 set_environment_variable_printing(optarg);
