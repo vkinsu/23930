@@ -62,7 +62,11 @@ void core_size_printing() {
     if (getrlimit(RLIMIT_CORE, &core_limit) == -1) {
         perror("Failed to get core file size limit");
     } else {
-        printf("Core file size limit: %ld bytes\n", core_limit.rlim_cur);
+        if (core_limit.rlim_cur == RLIM_INFINITY) {
+            printf("Core file size: unlimited\n");
+        } else {
+            printf("Core file size: %ld bytes\n", core_limit.rlim_cur);
+        }
     }
 }
 
