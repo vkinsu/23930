@@ -43,7 +43,11 @@ int main(int argc, char *argv[]) {
             j++;
             line_ln[i++] = j;
             lines_pos[i] = offset + 1;
-            printf("String %d begins at %ld\n", i-1, lines_pos[i-1]);
+
+            printf("%ld  ", lines_pos[i-1]);
+            fwrite(&file_in_memory[lines_pos[i-1]], 1, line_ln[i-1]-1, stdout);
+            printf("  %d\n", line_ln[i-1]-1);
+
             j = 0;
         } else {
             j++;
@@ -63,6 +67,11 @@ int main(int argc, char *argv[]) {
                 printf("Invalid line number\n");
             else
                 write(1, &file_in_memory[lines_pos[line_number]], line_ln[line_number]);
+        }
+        else {
+            alarm(0);
+            printf("Invalid input. Please enter a number.\n");
+            while (getchar() != '\n');
         }
     }
 }

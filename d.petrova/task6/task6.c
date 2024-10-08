@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <ctype.h>
 
 int fd;
 
@@ -33,7 +34,12 @@ int main(int argc, char *argv[]) {
             j++;
             line_ln[i++] = j;
             lines_pos[i] = lseek(fd, 0L, 1);
-            printf("String %d begins at %ld\n", i-1, lines_pos[i-1]);
+            
+            lseek(fd, lines_pos[i - 1], SEEK_SET); 
+            read(fd, buf, line_ln[i - 1]); 
+            buf[line_ln[i - 1] - 1] = '\0';
+            printf("%ld  %s  %d\n", lines_pos[i - 1], buf, line_ln[i-1]-1);
+
             j = 0;
         }
         else
@@ -52,6 +58,11 @@ int main(int argc, char *argv[]) {
                 write(1, buf, line_ln[line_number]);
             else
                 printf("Invalid line number\n");
+        }
+        else {
+            alarm(0);
+            printf("Invalid input. Please enter a number.\n");
+            while (getchar() != '\n');
         }
     }
 }
