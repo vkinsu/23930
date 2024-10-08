@@ -46,6 +46,13 @@ void build_offset_table(char *file_content, off_t **offset_table, size_t file_si
     }
 }
 
+void print_offset_table(off_t *offset_table, int line_count) {
+    printf("Offset Table:\n");
+    for (int i = 0; i < line_count; i++) {
+        printf("Line %d: Offset %lld\n", i + 1, (long long)offset_table[i]);
+    }
+}
+
 void print_line(char *file_content, off_t *offset_table, int line_num) {
     off_t line_start = offset_table[line_num];
     off_t line_end = offset_table[line_num + 1];
@@ -84,11 +91,19 @@ int main(int argc, char *argv[]) {
     offset_table = NULL;
     int line_count = 0;
     build_offset_table(file_content, &offset_table, file_size, &line_count);
+	
+	if (line_count == 0) {
+		printf("Offset Table is empty\n");
+		free(offset_table);
+		close(fd);
+		exit(0);
+	}
+	print_offset_table(offset_table, line_count);
 
     int line_num;
     while (1) {
         signal(SIGALRM, on_alarm);
-        printf("Enter line number (0 to exit), you have 5 seconds: ");
+        printf("\nEnter line number (0 to exit), you have 5 seconds: ");
         fflush(stdout);
         alarm(5);
         scanf("%d", &line_num);
