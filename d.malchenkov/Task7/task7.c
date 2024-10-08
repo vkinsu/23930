@@ -8,6 +8,7 @@
 #include <sys/mman.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <ctype.h>
 
 #define MAX_LINE_LENGTH 256
 
@@ -17,30 +18,28 @@ size_t file_size;
 
 void handle_timeout(int sig) {
     printf("\nTime is up! Printing the entire file:\n");
-    // Печатаем содержимое файла, отображенного в память
     write(1, file_memory, file_size);
     exit(0);
 }
 
 int main(int argc, char *argv[]) {
-    long lines_pos[500];  // Массив для позиций строк
+    long lines_pos[500];  
     int line_ln[500];
     int i = 1, j = 0, line_number;
     char c;
     struct stat st;
+    char input_buf[16];
 
     if (argc < 2) {
         printf("Usage: %s <filename>\n", argv[0]);
         exit(1);
     }
 
-    // Открытие файла
     if ((fd = open(argv[1], O_RDONLY)) == -1) {
         perror("Failed to open file");
         exit(1);
     }
 
-    // Получаем информацию о файле для отображения в память
     if (fstat(fd, &st) == -1) {
         perror("Failed to get file size");
         close(fd);
@@ -48,7 +47,6 @@ int main(int argc, char *argv[]) {
     }
     file_size = st.st_size;
 
-    // Отображение файла в память
     file_memory = mmap(NULL, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (file_memory == MAP_FAILED) {
         perror("Failed to map file");
@@ -58,29 +56,45 @@ int main(int argc, char *argv[]) {
 
     signal(SIGALRM, handle_timeout);
 
-    lines_pos[1] = 0L; // Первая строка начинается с нулевого отступа
+    lines_pos[1] = 0L; 
 
-    // Считывание файла для построения таблицы строк
     for (size_t k = 0; k < file_size; k++) {
         c = file_memory[k];
         if (c == '\n') {
-            line_ln[i] = j + 1;  // Длина строки с учётом '\n'
-            lines_pos[++i] = k + 1;  // Сохраняем смещение начала новой строки
-            j = 0;  // Обнуляем счетчик символов для новой строки
+            line_ln[i] = j + 1;  
+            lines_pos[++i] = k + 1;  
+            j = 0;  
         } else {
-            j++;  // Увеличиваем длину текущей строки
+            j++; 
         }
     }
 
-    // Основной цикл запроса номера строки
     while (1) {
-        alarm(5);
         printf("Enter line number (0 to exit): ");
-        scanf("%d", &line_number);
+        alarm(5);
+        if (fgets(input_buf, sizeof(input_buf), stdin) == NULL) {
+                printf("Error reading input.\n");
+                continue;
+            }
+
+            int valid_input = 1; 
+            for (int k = 0; k < strlen(input_buf) - 1; k++) { 
+                if (!isdigit(input_buf[k])) {
+                    valid_input = 0; 
+                    break;
+                }
+            }
+
+            if (!valid_input) {
+                printf("Invalid input. Please enter a number.\n");
+                continue;
+            }
+
+            line_number = atoi(input_buf); 
         alarm(0);
 
         if (line_number == 0) {
-            break;  // Выход из программы
+            break;  
         }
 
         if (line_number < 1 || line_number >= i) {
@@ -88,11 +102,9 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        // Вывод строки с использованием указателя на память
         printf("%.*s", line_ln[line_number], file_memory + lines_pos[line_number]);
     }
 
-    // Освобождение памяти и закрытие файла
     munmap(file_memory, file_size);
     close(fd);
 
