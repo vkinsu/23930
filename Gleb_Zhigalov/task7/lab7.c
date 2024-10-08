@@ -31,6 +31,21 @@ int main() {
   }
   mas_shifts[amount_of_shifts++] = symbols_counter;
 
+  printf("\n");
+  printf("Shifts table:\n");
+  for (int i = 1; i < amount_of_shifts - 1; i++) {
+    printf("%d\n", mas_shifts[i] + 1);
+  }
+  printf("\n");
+
+  printf("\n");
+  printf("String lengths table:\n");
+  printf("%d\n", mas_shifts[1] - mas_shifts[0]);
+  for (int i = 2; i < amount_of_shifts; i++) {
+    printf("%d\n", mas_shifts[i] - mas_shifts[i - 1] - 1);
+  }
+  printf("\n");
+
   char buf[1000];
   char number[20];
   int line_number = 1;

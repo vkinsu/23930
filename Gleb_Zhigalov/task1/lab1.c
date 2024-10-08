@@ -10,6 +10,9 @@ int main(int argc, char *argv[])
   char options[ ] = "ispuU:cC:dvV:"; 
   int c;
   struct rlimit process;
+  unsigned long ulimit_renewed;
+  char **pointer;
+  unsigned long core_size_renewed;
   while ((c = getopt(argc, argv, options)) != EOF) {
     switch (c) {
       case 'i':
@@ -37,7 +40,7 @@ int main(int argc, char *argv[])
         break;
       
       case 'U':
-        unsigned long ulimit_renewed = strtol(optarg, NULL, 10);
+        ulimit_renewed = strtol(optarg, NULL, 10);
         if (ulimit_renewed <= 0) {
           perror("Failed to set ulimit value\n");
           break;
@@ -49,7 +52,7 @@ int main(int argc, char *argv[])
         }
 
         process.rlim_cur = ulimit_renewed;
-        if (-1 == setrlimit(RLIMIT_FSIZE, &process)) {
+        if (setrlimit(RLIMIT_FSIZE, &process) != 0) {
           perror("Failed to set ulimit value\n");
         } else {
           printf("Ulimit value is set\n");
@@ -65,19 +68,19 @@ int main(int argc, char *argv[])
         break;
 
       case 'C':
-        unsigned long core_size_renewed = strtol(optarg, NULL, 10);
+        core_size_renewed = strtol(optarg, NULL, 10);
         if (core_size_renewed <= 0) {
           perror("Failed to set core size\n");
           break;
         }
         
-        if (getrlimit(RLIMIT_FSIZE, &process) != 0) {
+        if (getrlimit(RLIMIT_CORE, &process) != 0) {
           perror("Failed to set core size\n");
           break;
         }
 
         process.rlim_cur = core_size_renewed;
-        if (-1 == setrlimit(RLIMIT_FSIZE, &process)) {
+        if (setrlimit(RLIMIT_CORE, &process) != 0) {
           perror("Failed to set core size\n");
         } else {
           printf("Core size is set\n");
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
         break;
 
       case 'v':
-        char **pointer = environ;
+        pointer = environ;
         while (*pointer != NULL) {
           printf("%s\n", *pointer);
           pointer++;
