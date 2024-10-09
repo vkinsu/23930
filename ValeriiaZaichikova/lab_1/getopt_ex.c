@@ -35,7 +35,8 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'U': // -Unew_ulimit  Изменяет значение ulimit. Подсказка: смотри atol(3C) на странице руководства strtol(3C).
-                long new_ulimit = strtol(optarg, NULL, 10);
+                long new_ulimit; 
+                new_ulimit = strtol(optarg, NULL, 10);
                 if (0 == new_ulimit){
                     perror("\ninvalid argument for the -U option\n");
                     break;
@@ -61,7 +62,8 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'C': // -Csize  Изменяет размер core-файла.
-                long long new_limit = strtoll(optarg, NULL, 10);
+                long long new_limit;
+                new_limit = strtoll(optarg, NULL, 10);
                 if (0 == new_limit) {
                     perror("\ninvalid argument for the -C option\n");
                     break;
@@ -78,7 +80,8 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'd': // -d  Печатает текущую рабочую директорию.
-                char *pathname = getenv("PWD");
+                char *pathname;
+                pathname = getenv("PWD");
                 if (NULL == pathname)
                     perror("\nfailed to get the current directory\n");
                 else
@@ -86,7 +89,8 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'v': // -v  Распечатывает переменные среды и их значения.
-                char **ptr = environ;
+                char **ptr;
+                ptr = environ;
                 printf("\n");
                 for (; *ptr != NULL; ptr++)
                     printf("%s\n", *ptr);
