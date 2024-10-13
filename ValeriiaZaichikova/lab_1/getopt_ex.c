@@ -27,12 +27,12 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'u': // -u  Печатает значение ulimit.
-                struct rlimit limits;
+                {struct rlimit limits;
                 if (-1 == getrlimit(RLIMIT_FSIZE, &limits))
                     perror("\nfailed to get ulimit\n");
                 else
                     printf("\nulimit = %lu\n", limits.rlim_max);
-                break;
+                break;}
 
             case 'U': // -Unew_ulimit  Изменяет значение ulimit. Подсказка: смотри atol(3C) на странице руководства strtol(3C).
                 {long new_ulimit = strtol(optarg, NULL, 10);
