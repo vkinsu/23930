@@ -35,8 +35,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'U': // -Unew_ulimit  Изменяет значение ulimit. Подсказка: смотри atol(3C) на странице руководства strtol(3C).
-                long new_ulimit; 
-                new_ulimit = strtol(optarg, NULL, 10);
+                {long new_ulimit = strtol(optarg, NULL, 10);
                 if (0 == new_ulimit){
                     perror("\ninvalid argument for the -U option\n");
                     break;
@@ -51,7 +50,7 @@ int main(int argc, char *argv[]) {
                     perror("\nfailed to set the ulimit\n");
                 else
                     printf("\nsuccess: the ulimit has been set\n");
-                break;
+                break;}
 
             case 'c': // -c  Печатает размер в байтах core-файла, который может быть создан.
                 if (-1 == getrlimit(RLIMIT_CORE, &limits)) {
@@ -62,8 +61,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'C': // -Csize  Изменяет размер core-файла.
-                long long new_limit;
-                new_limit = strtoll(optarg, NULL, 10);
+                {long long new_limit = strtoll(optarg, NULL, 10);
                 if (0 == new_limit) {
                     perror("\ninvalid argument for the -C option\n");
                     break;
@@ -77,24 +75,22 @@ int main(int argc, char *argv[]) {
                     perror("\nfailed to set the core-file size limit\n");
                 else
                     printf("\nsuccess: the core-file size limit has been set\n");
-                break;
+                break;}
 
             case 'd': // -d  Печатает текущую рабочую директорию.
-                char *pathname;
-                pathname = getenv("PWD");
+                {char *pathname = getenv("PWD");
                 if (NULL == pathname)
                     perror("\nfailed to get the current directory\n");
                 else
                     printf("\ncurrent directory: %s\n", pathname);
-                break;
+                break;}
 
             case 'v': // -v  Распечатывает переменные среды и их значения.
-                char **ptr;
-                ptr = environ;
+                {char **ptr = environ;
                 printf("\n");
                 for (; *ptr != NULL; ptr++)
                     printf("%s\n", *ptr);
-                break;
+                break;}
 
             case 'V': // -Vname=value  Вносит новую переменную в среду или изменяет значение существующей переменной.
                 if (-1 == putenv(optarg))
