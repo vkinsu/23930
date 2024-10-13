@@ -8,7 +8,6 @@ extern char **environ;
 int main(int argc, char *argv[]) {
     char options[] = ":ispuU:cC:dvV:";  
     int c;
-    struct rlimit limits;
     
     while ((c = getopt(argc, argv, options)) != EOF) {
         switch (c) {
@@ -28,6 +27,7 @@ int main(int argc, char *argv[]) {
                 break;
 
             case 'u': // -u  Печатает значение ulimit.
+                struct rlimit limits;
                 if (-1 == getrlimit(RLIMIT_FSIZE, &limits))
                     perror("\nfailed to get ulimit\n");
                 else
@@ -36,45 +36,51 @@ int main(int argc, char *argv[]) {
 
             case 'U': // -Unew_ulimit  Изменяет значение ulimit. Подсказка: смотри atol(3C) на странице руководства strtol(3C).
                 {long new_ulimit = strtol(optarg, NULL, 10);
-                if (0 == new_ulimit){
+                if (0 >= new_ulimit){
                     perror("\ninvalid argument for the -U option\n");
                     break;
                 }
-                struct rlimit limits; // from case 'u'
+                printf("\nnew_limit = %ld\n", new_ulimit);
+                // from case 'u'
+                struct rlimit limits;
                 if (-1 == getrlimit(RLIMIT_FSIZE, &limits)) {
                     perror("\nfailed to get the ulimit\n");
                     break;
                 }
                 limits.rlim_cur = new_ulimit;
-                if (-1 == setrlimit(RLIMIT_FSIZE, &limits))
-                    perror("\nfailed to set the ulimit\n");
-                else
+                limits.rlim_max = new_ulimit;
+                if (!setrlimit(RLIMIT_FSIZE, &limits))
                     printf("\nsuccess: the ulimit has been set\n");
+                else
+                    perror("\nfailed to set the ulimit\n");   
                 break;}
 
             case 'c': // -c  Печатает размер в байтах core-файла, который может быть создан.
+                {struct rlimit limits;
                 if (-1 == getrlimit(RLIMIT_CORE, &limits)) {
                     perror("\nfailed to get the core-file size limit\n");
                     break;
                 } else 
                     printf("\ncore-file size limit = %lu\n", limits.rlim_max);
-                break;
+                break;}
 
             case 'C': // -Csize  Изменяет размер core-файла.
                 {long long new_limit = strtoll(optarg, NULL, 10);
-                if (0 == new_limit) {
+                if (0 >= new_limit) {
                     perror("\ninvalid argument for the -C option\n");
                     break;
                 }
-                if (-1 == getrlimit(RLIMIT_CORE, &limits)) {
+                struct rlimit limits;
+                if (getrlimit(RLIMIT_CORE, &limits)) {
                     perror("\nfailed to get the core-file size limit\n");
                     break;
                 }
                 limits.rlim_cur = new_limit;
-                if (-1 == setrlimit(RLIMIT_CORE, &limits))
-                    perror("\nfailed to set the core-file size limit\n");
-                else
+                limits.rlim_max = new_limit;
+                if (!setrlimit(RLIMIT_CORE, &limits))
                     printf("\nsuccess: the core-file size limit has been set\n");
+                else
+                    perror("\nfailed to set the core-file size limit\n");
                 break;}
 
             case 'd': // -d  Печатает текущую рабочую директорию.
@@ -93,7 +99,7 @@ int main(int argc, char *argv[]) {
                 break;}
 
             case 'V': // -Vname=value  Вносит новую переменную в среду или изменяет значение существующей переменной.
-                if (-1 == putenv(optarg))
+                if (putenv(optarg))
                     perror("\nfailed to set the environironmental variable");
                 break;
             
