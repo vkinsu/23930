@@ -12,7 +12,7 @@ typedef struct Node {
 void init (Node *head) {
     head = (Node*) malloc (sizeof(Node));
     head->str = NULL;
-    head->next = NULL;
+    head->next = (Node*) malloc (sizeof(Node));
 }
 
 void addNode (Node *curr, char *data) {
