@@ -83,7 +83,7 @@ void printList (Node* head) {
 }
 
 int main () {
-    Node* head;
+    Node* head = NULL;
 
     init(head);
 
