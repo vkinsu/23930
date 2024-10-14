@@ -18,7 +18,7 @@ void addNode (Node *curr, char *data) {
 }
 
 void processInput (Node* head) {
-    char* inputBuffer = (char*) malloc (MAX_SIZE); 
+    char inputBuffer [MAX_SIZE] = {0}; 
 
     Node* curr = head;
 
@@ -63,7 +63,6 @@ void processInput (Node* head) {
             curr = curr->next;
         }
     }
-    free(inputBuffer);
 }
 
 void printList (Node* head) {
