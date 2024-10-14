@@ -3,7 +3,7 @@
 
 typedef struct List_s { 
     char* str; 
-    struct List* next; 
+    struct List_s* next; 
 } List;
 
 int main() {
@@ -37,6 +37,8 @@ int main() {
         }
         p = p->next;
     }
+
+    free(head);
 
     return 0;
 }
