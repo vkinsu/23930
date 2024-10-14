@@ -40,10 +40,14 @@ int main(int argc, char *argv[]) {
                 if (ulimit(UL_SETFSIZE, new_limit) == -1) perror("Fail U");
                 break;
             }
-            case 'c':
-                if (getrlimit(RLIMIT_CORE, &rlp) != 0) perror("Fail c");
-                else printf("RLIMIT_CORE = %ld\n", (long)rlp.rlim_cur);
+            case 'c': {
+                if (getrlimit(RLIMIT_CORE, &rlp) != 0) { perror("Fail c");}
+                else {
+			if ((long)rlp.rlim_cur  == -3) printf("RLIMIT_CORE = unlimited\n");
+		     	else printf("RLIMIT_CORE = %ld\n", (long)rlp.rlim_cur);
+		}
                 break;
+	    }
             case 'C': {
                 long new_core_size = atol(optarg);
                 if (new_core_size < 0) {
