@@ -9,12 +9,6 @@ typedef struct Node {
     struct Node *next;
 } Node;
 
-void init (Node *head) {
-    head = (Node*) malloc (sizeof(Node));
-    head->str = NULL;
-    head->next = (Node*) malloc (sizeof(Node));
-}
-
 void addNode (Node *curr, char *data) {
     char *tmp = (char*) malloc ((strlen(data) + 1) * sizeof(char));
     strcpy(tmp, data);
@@ -83,9 +77,9 @@ void printList (Node* head) {
 }
 
 int main () {
-    Node* head = NULL;
-
-    init(head);
+    Node* head = (Node*) malloc (sizeof(Node));
+    head->str = NULL;
+    head->next = (Node*) malloc (sizeof(Node));
 
     processInput (head);
 
