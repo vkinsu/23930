@@ -6,6 +6,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/mman.h>
 
 #define BUFFER_SIZE 2048
 
@@ -14,9 +15,13 @@ typedef struct {
     size_t length;
 } textTable;
 
-int fName;
+size_t fSize;
 textTable *indTable;
+
+int fName;
 int linesNum;
+char *fData;
+
 
 void handle_alarm(int sig) {
     char buffer[BUFFER_SIZE];
@@ -34,79 +39,81 @@ void handle_alarm(int sig) {
     exit(0);
 }
 
-int buildLineTable(int fd, textTable **table, int *linesNum) {
-    char buffer[BUFFER_SIZE];
+int buildLineTable(textTable **table, int *linesNum) {
     off_t offset = 0;
-    ssize_t symRead;
     size_t lineLength = 0;
-    
-    int curLineNum = 0;
+
+    int curLineCount = 0;
     int curTableSize = 5;
 
     *table = malloc(curTableSize * sizeof(textTable));
 
-    while ((symRead = read(fd, buffer, BUFFER_SIZE)) > 0) {
-        for (ssize_t i = 0; i < symRead; i++) {
-            lineLength++;
-            if (buffer[i] == '\n') {
+    for (size_t i = 0; i < fSize; i++) {
+        lineLength++;
+        if (fData[i] == '\n') {
 
-                if (curLineNum >= curTableSize) {
-                    curTableSize *= 2;
-                    *table = realloc(*table, curTableSize * sizeof(textTable));
-                }
-
-                (*table)[curLineNum].offset = offset;
-                (*table)[curLineNum].length = (lineLength == 1) ? 0 : lineLength;
-                
-                curLineNum++;
-
-                offset += lineLength;
-                lineLength = 0;
+            if (curLineCount >= curTableSize) {
+                curTableSize *= 2;
+                *table = realloc(*table, curTableSize * sizeof(textTable));
             }
+
+            (*table)[curLineCount].offset = offset;
+            (*table)[curLineCount].length = (lineLength == 1) ? 0 : lineLength;
+
+            curLineCount++;
+            
+            offset += lineLength;
+            lineLength = 0;
         }
     }
 
-    *linesNum = curLineNum;
+    *linesNum = curLineCount;
     return 0;
 }
 
-void printLine(int fd, textTable *table, int lineNum) {
-
-    if (lseek(fd, table[lineNum].offset, SEEK_SET) == -1) {
-        perror("Error seeking");
+void printLine(textTable *table, int lineNum) {
+    if (lineNum < 0) {
+        printf("Invalid line number.\n");
         return;
     }
-    char *line = malloc(table[lineNum].length + 1);
+
     if (table[lineNum].length == 0) {
         printf("Line %d:\n", lineNum + 1);
         return;
-    } else if (read(fd, line, table[lineNum].length) != table[lineNum].length) {
-        free(line);
-        return;
     }
 
-    line[table[lineNum].length] = '\0';
-    printf("Line %d: %s", lineNum + 1, line);
-
-    free(line);
+    printf("Line %d: ", lineNum + 1);
+    write(STDOUT_FILENO, &fData[table[lineNum].offset], table[lineNum].length);
 }
 
 int main(int argc, char *argv[]) {
+
     if (argc != 2) {
         fprintf(stderr, "Incorrect format\n", argv[0]);
         return 1;
+    } else {
+        fName = open(argv[1], O_RDONLY);
+        if (fName == -1) {
+            perror("This file doesn't exist");
+            return 1;
+        }
     }
-
-    signal(SIGALRM, handle_alarm);
-
-    fName = open(argv[1], O_RDONLY);
-    if (fName == -1) {
-        perror("This file doesn't exist");
+    
+    struct stat sb;
+    if (fstat(fName, &sb) == -1) {
+        perror("Error getting file size");
+        close(fName);
         return 1;
     }
+    fSize = sb.st_size;
 
-    if (buildLineTable(fName, &indTable, &linesNum) != 0) {
+    signal(SIGALRM, handle_alarm);
+    fSize = sb.st_size;
+    fData = mmap(NULL, fSize, PROT_READ, MAP_PRIVATE, fName, 0);
+
+    if (buildLineTable(&indTable, &linesNum) != 0) {
         perror("Error while building the table");
+        munmap(fData, fSize);
         close(fName);
         return 1;
     }
@@ -120,9 +127,9 @@ int main(int argc, char *argv[]) {
     while (1)
     {
         printf("Enter line number (0 to exit, you have only 5 seconds!): ");
+
         alarm(5);
         int result = scanf("%d", &lineNum);
-        
 
         if (result != 1) {
             printf("Invalid input. Please enter a valid line number.\n");
@@ -134,15 +141,14 @@ int main(int argc, char *argv[]) {
         else if (lineNum > linesNum) printf("Invalid line number.\n");
         else {
             alarm(0);
-            printLine(fName, indTable, lineNum - 1);
+            printLine(indTable, lineNum - 1);
         }
     }
 
-    close(fName);
     free(indTable);
-    
+    munmap(fData, fSize);
+    close(fName);
+
     return 0;
 }
-
-
 

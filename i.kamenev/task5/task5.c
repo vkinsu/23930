@@ -12,7 +12,7 @@ typedef struct {
     size_t length;
 } textTable;
 
-int build_line_table(int fd, textTable **table, int *linesNum) {
+int buildLineTable(int fd, textTable **table, int *linesNum) {
     char buffer[BUFFER_SIZE];
     off_t offset = 0;
     ssize_t symRead;
@@ -35,10 +35,11 @@ int build_line_table(int fd, textTable **table, int *linesNum) {
 
                 (*table)[curLineNum].offset = offset;
                 (*table)[curLineNum].length = (lineLength == 1) ? 0 : lineLength;
+                
+                curLineNum++;
 
                 offset += lineLength;
                 lineLength = 0;
-                curLineNum++;
             }
         }
     }
@@ -47,27 +48,25 @@ int build_line_table(int fd, textTable **table, int *linesNum) {
     return 0;
 }
 
-void print_line(int fd, textTable *table, int line_number) {
+void printLine(int fd, textTable *table, int lineNum) {
 
-    if (lseek(fd, table[line_number].offset, SEEK_SET) == -1) {
+    if (lseek(fd, table[lineNum].offset, SEEK_SET) == -1) {
         perror("Error seeking");
         return;
-    }
-
-    if (table[line_number].length == 0) {
-        printf("Line %d:\n", line_number + 1);
+    } else if (table[lineNum].length == 0) {
+        printf("Line %d:\n", lineNum + 1);
         return;
     }
 
-    char *line = malloc(table[line_number].length + 1);
+    char *line = malloc(table[lineNum].length + 1);
 
-    if (read(fd, line, table[line_number].length) != table[line_number].length) {
+    if (read(fd, line, table[lineNum].length) != table[lineNum].length) {
         free(line);
         return;
     }
 
-    line[table[line_number].length] = '\0';
-    printf("Line %d: %s", line_number + 1, line);
+    line[table[lineNum].length] = '\0';
+    printf("Line %d: %s", lineNum + 1, line);
 
     free(line);
 }
@@ -88,7 +87,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    if (build_line_table(fd, &line_table, &linesNum) != 0) {
+    if (buildLineTable(fd, &line_table, &linesNum) != 0) {
         close(fd);
         return 1;
     }
@@ -98,10 +97,11 @@ int main(int argc, char *argv[]) {
         printf("Line %d: offset = %lld, length = %zu\n", i + 1, (long long)line_table[i].offset, line_table[i].length);
     }
 
-    int line_number;
-    while (1) {
+    int lineNum;
+    while (1)
+    {
         printf("Enter line number (0 to exit): ");
-        int result = scanf("%d", &line_number);
+        int result = scanf("%d", &lineNum);
 
         if (result != 1) {
             printf("Invalid input. Please enter a valid line number.\n");
@@ -109,13 +109,10 @@ int main(int argc, char *argv[]) {
             continue;
         }
 
-        if (line_number == 0) {
-            break;
-        } else if (line_number > linesNum) {
-            printf("Invalid line number.\n");
-        } else if(line_number > 0 && line_number <= linesNum){
-            print_line(fd, line_table, line_number - 1);
-        }
+        if (lineNum == 0)  break;
+        else if (lineNum > linesNum) printf("Invalid line number.\n");
+        else printLine(fd, line_table, lineNum - 1);
+        
     }
 
     free(line_table);
