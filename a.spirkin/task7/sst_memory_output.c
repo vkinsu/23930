@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 
 char buffer[1024];
 int lines = 0;
@@ -11,18 +13,16 @@ int f;
 off_t line_start;
 off_t line_end;
 off_t *offset_table;
+char *fcontent = NULL;
+size_t fsize = 0;
 
 void alarm_handler(int sig) {
-    printf("Time's out.\n");
+    printf("\nTime's out.\n");
 
-    line_start = offset_table[0];
-    line_end = offset_table[lines];
-    length = line_end - line_start;
-    read(f, buffer, length);
-    buffer[length] = '\0';
-    printf("%s", buffer);
+    write(STDOUT_FILENO, fcontent, fsize);
 
     free(offset_table);
+    munmap(fcontent, fsize);
     close(f);
 
     exit(0);
@@ -36,6 +36,23 @@ int main(int argc, char* argv[]) {
     f = open(argv[1], O_RDWR);
     if (f == -1) {
         perror("Error on opening the file.");
+        return 1;
+    }
+
+    struct stat file_stat;
+    if (fstat(f, &file_stat) < 0) {
+        perror("Error getting file size");
+        close(f);
+        return 1;
+    }
+    fsize = file_stat.st_size;
+
+    fcontent = mmap(NULL, fsize, PROT_READ,
+                    MAP_PRIVATE, f, 0);
+                    
+    if (fcontent == MAP_FAILED) {
+        perror("Error on mapping file.");
+        close(f);
         return 1;
     }
 
@@ -66,7 +83,7 @@ int main(int argc, char* argv[]) {
 		free(offset_table);
 		close(f);
 		
-        return 0;
+        return 1;
 	}
 
     int line_num;
@@ -92,15 +109,12 @@ int main(int argc, char* argv[]) {
             line_end = offset_table[line_num + 1];
             length = line_end - line_start;
 
-            lseek(f, line_start, SEEK_SET);
-
-            read(f, buffer, length);
-            buffer[length] = '\0';
-            printf("%s", buffer);
+            write(STDOUT_FILENO, &fcontent[line_start], length);
         }
     }
 
     free(offset_table);
+    munmap(fcontent, fsize);
     close(f);
 
     return 0;
