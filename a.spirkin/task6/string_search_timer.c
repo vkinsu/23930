@@ -15,6 +15,8 @@ off_t *offset_table;
 void alarm_handler(int sig) {
     printf("Time's out.\n");
 
+    lseek(f, 0, SEEK_SET);
+
     line_start = offset_table[0];
     line_end = offset_table[lines];
     length = line_end - line_start;
