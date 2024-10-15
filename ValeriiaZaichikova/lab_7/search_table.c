@@ -56,7 +56,8 @@ void printTable (Array table) {
     printf ("\nNumber of lines in file: %d\n", table.cnt);
     for (int num = 1; num <= table.cnt; num++) {
         printf ("Line position: %d", num);
-        printf ("\tLine size: %ld\n", table.array[num - 1].size);
+        printf ("\tLine offset: %ld", table.array[num - 1].position);
+        printf ("\t\tLine size: %ld\n", table.array[num - 1].size);
     }
     printf ("\n");
 }
@@ -118,10 +119,15 @@ void create_table (off_t input, Array table) {
             exit(0);
         }
 
-        int num;
-        scanf("%d", &num);
+        char* str = (char*) malloc (sizeof(char)*256);
+        fgets (str, 256, stdin);
 
-        if (num == 0) { break; }
+        int num;
+        if (1 != sscanf(str,"%d\n", &num)) {
+            printf("\nNot a number.\n\n");
+            continue;
+        } else if (num == 0) { break; }
+
         if (table.cnt < num) {
             printf("The file contains only %d line(s).\n", table.cnt);
             continue;
