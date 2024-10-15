@@ -7,7 +7,6 @@
 #include <limits.h>
 #include <string.h>
 #include <errno.h>
-#include <bits/getopt_core.h>
 
 void print_ids() {
     printf("Real UID: %d, Effective UID: %d\n", getuid(), geteuid());
