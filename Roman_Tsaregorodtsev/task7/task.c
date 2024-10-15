@@ -79,8 +79,13 @@ void MyAlarm ()
     _Exit (0);
 }
 
-long string_to_long(const char *str) {
-    for(int i = 0;i<strlen(str);i++)
+int string_to_long(char *str) {
+    if(str[0] == '\n')
+    {
+        fprintf(stderr, "Invalid input\n");
+        return 0;
+    }
+    for(int i = 0;i<strlen(str)-1;i++)
     {
         if(str[i] < '0' || str[i] > '9')
         {
@@ -122,7 +127,7 @@ int main() {
         signal (SIGALRM, MyAlarm);
         alarm(5);
         printf("Enter line number: ");
-        scanf("%s", &line_number);
+        fgets(line_number, sizeof(line_number), stdin);
         alarm(0);
         num = string_to_long(line_number);
         if (num == 0) {

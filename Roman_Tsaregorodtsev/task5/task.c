@@ -64,7 +64,12 @@ void print_line(const char *filename, const LineInfo *table, int line_number, in
 }
 
 int string_to_long(char *str) {
-    for(int i = 0;i<strlen(str);i++)
+    if(str[0] == '\n')
+    {
+        fprintf(stderr, "Invalid input\n");
+        return 0;
+    }
+    for(int i = 0;i<strlen(str)-1;i++)
     {
         if(str[i] < '0' || str[i] > '9')
         {
@@ -91,7 +96,7 @@ int main() {
     int num;
     while (1) {
         printf("Enter line number: ");
-        scanf("%s", line_number);
+        fgets(line_number, sizeof(line_number), stdin);
         num = string_to_long(line_number);
         if (num == 0) {
             break;
