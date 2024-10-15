@@ -35,9 +35,9 @@ int main(int argc, char *argv[])
             setpgid(0, 0);
             break;
         case 'p':
-            printf("NPN: %ld\n", (long)getpid());
-            printf("PPN: %ld\n", (long)getppid());
-            printf("GPN: %ld\n", (long)getpgid(0));
+            printf("Process id: %ld\n", (long)getpid());
+            printf("Parent pid: %ld\n", (long)getppid());
+            printf("Group pid: %ld\n", (long)getpgid(0));
             break;
         case 'U': {
             char *endptr;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
             break;
         case 'c':
             getrlimit(RLIMIT_CORE, &rlp);
-            printf("Core size: %ld\n", (long)rlp.rlim_cur);
+            printf("Core size: %ld bytes\n", (long)rlp.rlim_cur);
             break;
         case 'C':
             getrlimit(RLIMIT_CORE, &rlp);
