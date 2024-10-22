@@ -46,12 +46,22 @@ int main(int argc, char* argv[]) {
         return 0;
 	}
 
+    for (int i = 1; i < lines + 1; i++) {
+        int current_length = offset_table[i] - offset_table[i - 1];
+
+        printf("Line: %d, length: %d\n", i, current_length);
+    }
+
     int line_num;
 
     while (1) {
-        scanf("%d", &line_num);
+        int reading_status = scanf("%d", &line_num);
 
         if (line_num == 0) {
+            break;
+        }
+
+        if (reading_status == 0) {
             break;
         }
 
