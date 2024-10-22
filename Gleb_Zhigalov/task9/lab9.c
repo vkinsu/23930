@@ -11,7 +11,7 @@ int main() {
   }
   if (pid == 0) {
     // Child process
-    execl("lab5", NULL);
+    execlp("cat", "cat", "lab5.c", NULL);
     exit(0);
   } else {
     // Parent process 
