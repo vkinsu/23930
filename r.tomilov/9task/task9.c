@@ -14,7 +14,7 @@ int main()
     }
     else if (pid == 0) 
     {
-        execlp("cat", "cat", "test.txt", (char *)NULL);
+        execlp("cat", "cat", "file.txt", (char *)NULL);
         perror("execlp failed");
         exit(1);
     } 
