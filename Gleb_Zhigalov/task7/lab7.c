@@ -9,13 +9,13 @@ int main() {
   char filename[257];
   printf("Write filename: ");
   scanf("%s", filename);
-  size_t f = open(filename, O_RDONLY);
+  int f = open(filename, O_RDONLY);
   if (f == -1) {
     printf("Reading is impossible\n");
     return -1;
   }
 
-  int mas_shifts[1000];
+  off_t mas_shifts[1000];
   char symbol;
   int symbols_counter = 0;
   int amount_of_shifts = 1;
