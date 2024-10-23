@@ -20,7 +20,7 @@ int main() {
   int symbols_counter = 0;
   int amount_of_shifts = 1;
   mas_shifts[0] = 0;
-  size_t size = lseek(f, 0, SEEK_END);
+  off_t size = lseek(f, 0, SEEK_END);
   char *p = mmap(0, size, PROT_READ, MAP_SHARED, f, 0);
 
   while(symbols_counter < size) {
