@@ -23,7 +23,10 @@ int main() {
     } else {
         printf("Родительский процесс (PID=%d): Запущен подпроцесс PID=%d\n", getpid(), pid);
         
-        waitpid(pid, &status, 0);
+        if (waitpid(pid, &status, 0) == -1) {
+            perror("failed executing waitpid()");
+            exit(0);
+        }
         
         printf("Родительский процесс: Подпроцесс PID=%d завершился с кодом %d\n", pid, WEXITSTATUS(status));
     }
