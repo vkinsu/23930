@@ -9,18 +9,18 @@ int main() {
   char filename[257];
   printf("Write filename: ");
   scanf("%s", filename);
-  size_t f = open(filename, O_RDONLY);
+  int f = open(filename, O_RDONLY);
   if (f == -1) {
     printf("Reading is impossible\n");
     return -1;
   }
 
-  int mas_shifts[1000];
+  off_t mas_shifts[1000];
   char symbol;
   int symbols_counter = 0;
   int amount_of_shifts = 1;
   mas_shifts[0] = 0;
-  size_t size = lseek(f, 0, SEEK_END);
+  off_t size = lseek(f, 0, SEEK_END);
   char *p = mmap(0, size, PROT_READ, MAP_SHARED, f, 0);
 
   while(symbols_counter < size) {
