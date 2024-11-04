@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   }
   if (pid == 0) {
     // Child process
-    execv(argv[1], &argv[1]);
+    execvp(argv[1], &argv[1]);
     exit(127);
   } else {
     // Parent process 
