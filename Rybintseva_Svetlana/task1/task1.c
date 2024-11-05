@@ -7,11 +7,14 @@
 
 extern char **environ;
 
-int main(int argc, char *argv[]){
-    int command;
-    struct rlimit rl;
-    char cwd[_PC_PATH_MAX];
+int command;
+struct rlimit rl;
+char cwd[_PC_PATH_MAX];
+unsigned long ulimit_renewed;
+char **pointer;
 
+int main(int argc, char *argv[]){
+    
     while ((command = getopt(argc, argv, "ispuU::cC:dV::v")) != EOF){
         switch (command)
         {
@@ -41,7 +44,7 @@ int main(int argc, char *argv[]){
             break;
 
         case 'U':
-            unsigned long ulimit_renewed = strtol(optarg, NULL, 10);
+            ulimit_renewed = strtol(optarg, NULL, 10);
             
             if (getrlimit(RLIMIT_FSIZE, &rl) != 0) {
                 perror("Failed to set ulimit value\n");
@@ -52,7 +55,9 @@ int main(int argc, char *argv[]){
             if (-1 == setrlimit(RLIMIT_FSIZE, &rl)) {
             perror("Failed to set ulimit value\n");
             }
+            
             break;
+
 
         case 'c':
             if (getrlimit(RLIMIT_CORE, &rl) == 0) {
@@ -76,7 +81,7 @@ int main(int argc, char *argv[]){
             }
 
         case 'v':
-            char **pointer = environ;
+            pointer = environ;
             while (*pointer != NULL) {
                 printf("%s\n", *pointer);
                 pointer++;
