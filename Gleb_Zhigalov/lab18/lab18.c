@@ -6,6 +6,8 @@
 #include <grp.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
+#include <limits.h>
 
 
 void print_info(const char* filename) {
@@ -56,7 +58,9 @@ void print_info(const char* filename) {
 
 int main(int argc, const char* argv[]) {
   if (argc < 2) {
-    printf("Bad input");
+    char cwd[PATH_MAX];
+    getcwd(cwd, sizeof(cwd));
+    print_info(cwd);
     return 1;
   }
 

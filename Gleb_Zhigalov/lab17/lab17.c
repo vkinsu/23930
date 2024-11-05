@@ -60,9 +60,9 @@ int main() {
         write(1, DELETE_ALL_SYMBOLS_IN_STRING, strlen(DELETE_ALL_SYMBOLS_IN_STRING));
         current_line[0] = '\0';
 
-      } else if (current_symbol == w_o_echo_and_canon.c_cc[VEOF]) {
+      } else if (current_symbol == '\004') {
         if (current_lenght == 0) {
-          return 0;
+          return(0);
         }
       } else {
         write(1, "\x07", 1);
