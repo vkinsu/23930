@@ -1,52 +1,91 @@
 #include <stdio.h>
-#include <signal.h>
-#include <unistd.h>
-#include <termios.h>
 #include <stdlib.h>
+#include <string.h>
+#include <termios.h>
+#include <unistd.h>
 
-struct termios old_termios;
+#define CTRL_C 3
+#define CTRL_G 7
+#define CTRL_BACKSLASH 28
 
-void handle_sigquit(int signum) {
-    (void)signum;
-    // Восстанавливаем старые настройки терминала перед выходом
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_termios);
-    exit(0);
+int ctrl_c_count = 0;
+
+void set_noncanonical_mode(struct termios *original) 
+{
+    struct termios new_settings;
+
+    if (tcgetattr(STDIN_FILENO, original) == -1) 
+    {
+        perror("РћС€РёР±РєР°: РЅРµ СѓРґР°Р»РѕСЃСЊ РїРѕР»СѓС‡РёС‚СЊ Р°С‚СЂРёР±СѓС‚С‹ С‚РµСЂРјРёРЅР°Р»Р°");
+        exit(1);
+    }
+    
+    new_settings = *original;
+    new_settings.c_lflag &= ~(ICANON | ECHO);
+    new_settings.c_lflag &= ~ISIG;
+    
+    new_settings.c_cc[VMIN] = 1;
+    new_settings.c_cc[VTIME] = 0;
+
+    if (tcsetattr(STDIN_FILENO, TCSANOW, &new_settings) == -1) 
+    {
+        perror("РћС€РёР±РєР°: РЅРµ СѓРґР°Р»РѕСЃСЊ СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РЅРµРєР°РЅРѕРЅРёС‡РµСЃРєРёР№ СЂРµР¶РёРј С‚РµСЂРјРёРЅР°Р»Р°");
+        exit(1);
+    }
 }
 
-int main() {
-    struct termios new_termios;
+void restore_terminal_mode(struct termios *original) 
+{
+    if (tcsetattr(STDIN_FILENO, TCSANOW, original) == -1) 
+    {
+        perror("РћС€РёР±РєР°: РЅРµ СѓРґР°Р»РѕСЃСЊ РІРѕСЃСЃС‚Р°РЅРѕРІРёС‚СЊ СЂРµР¶РёРј С‚РµСЂРјРёРЅР°Р»Р°");
+    }
+}
 
-    // Сохраняем старые настройки терминала
-    tcgetattr(STDIN_FILENO, &old_termios);
-    new_termios = old_termios;
+void handle_input() 
+{
+    int pos = 0;
 
-    // Отключаем символ прерывания (CTRL-C)
-    new_termios.c_cc[VINTR] = _POSIX_VDISABLE;
+    while (1) 
+    {
+        char ch;
+        if (read(STDIN_FILENO, &ch, 1) <= 0) 
+        {
+            perror("РћС€РёР±РєР° РїСЂРё С‡С‚РµРЅРёРё РІРІРѕРґР°");
+            break;
+        }
 
-    // Устанавливаем неканонический режим
-    new_termios.c_lflag &= ~(ICANON | ECHO); // Отключаем канонический режим и эхо
-    tcsetattr(STDIN_FILENO, TCSANOW, &new_termios);
-
-    // Устанавливаем обработчик сигнала SIGQUIT для выхода
-    struct sigaction sa_quit = {0};
-    sa_quit.sa_handler = handle_sigquit;
-    sigaction(SIGQUIT, &sa_quit, NULL);
-
-    printf("Нажмите CTRL-C для звукового сигнала, CTRL-\\ для выхода.\n");
-
-    while (1) {
-        char c = getchar();
-        printf("%c", c); // Исправлено на %c
-
-        // Проверяем, является ли введённый символ CTRL-C
-        if (c == 3) { // ASCII код для CTRL-C
-            ioctl(STDOUT_FILENO, TIOCSBRK, 0);
-            printf("Received CTRL-C.\n");
+        if (ch == CTRL_C) 
+        {
+            ctrl_c_count++;
+            printf("^G");
+            putchar(CTRL_G);
             fflush(stdout);
+            pos += 2;
+        } 
+        else if (ch == CTRL_BACKSLASH) 
+        {
+            printf("\nCtrl-C Р±С‹Р» РЅР°Р¶Р°С‚ %d СЂР°Р·\n", ctrl_c_count);
+            fflush(stdout);
+            break;
         }
     }
+}
 
-    tcsetattr(STDIN_FILENO, TCSANOW, &old_termios);
+int main() 
+{
+    struct termios original_settings;
 
+    set_noncanonical_mode(&original_settings);
+
+    printf("Р’РІРµРґРёС‚Рµ С‚РµРєСЃС‚ (CTRL-\\ РґР»СЏ Р·Р°РІРµСЂС€РµРЅРёСЏ РїСЂРѕРіСЂР°РјРјС‹):\n");
+    fflush(stdout);
+
+    setvbuf(stdout, NULL, _IONBF, 0);
+    handle_input();
+
+    restore_terminal_mode(&original_settings);
+
+    printf("\nР—Р°РІРµСЂС€РµРЅРёРµ РїСЂРѕРіСЂР°РјРјС‹.\n");
     return 0;
 }
