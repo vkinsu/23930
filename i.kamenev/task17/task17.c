@@ -6,7 +6,7 @@
 
 #define ERASE 127        // Backspace
 #define KILL 21          // Ctrl-U
-#define CTRL_W 12        // Ctrl-L
+#define CTRL_W 23        // Ctrl-W
 #define CTRL_D 4         // Ctrl-D
 #define CTRL_G 7         // Ctrl-G
 #define MAX_LINE_LEN 40  // Max length
