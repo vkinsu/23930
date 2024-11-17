@@ -16,8 +16,8 @@ void handleSIGQUIT() {
 }
 
 int main() {
-    signal(SIGINT, &handleSIGINT);
-    signal(SIGQUIT, &handleSIGQUIT);
-
-    while (1);
+    while (1) {
+        signal(SIGINT, &handleSIGINT);
+        signal(SIGQUIT, &handleSIGQUIT);
+    }
 }
