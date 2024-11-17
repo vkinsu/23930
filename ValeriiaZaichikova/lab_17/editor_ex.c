@@ -3,8 +3,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <sys/ttydefaults.h>
+//#include <sys/ttydefaults.h>
 #include <string.h>
+
+#define KILL ('u'&037)
+#define WERASE ('w'&037)
+#define EOFFF ('d'&037)
 
 struct termios orig_termios;
 
@@ -31,17 +35,17 @@ int main() {
         int len = strlen(line);
         if (iscntrl(c) || !isprint(c)) {
             switch (c) {
-                case CERASE: {
+                case 0177: {
                     line[len - 1] = 0;
                     printf("\33[D\33[K");
                     break;
                 }
-                case CKILL: {
+                case KILL: {
                     line[0] = 0;
                     printf("\33[2K\r");
                     break;
                 }
-                case CWERASE: {           
+                case WERASE: {           
                     int word_start = 0;
                     char prev = ' ';
                     for (int i = 0; i < len; i++) {
@@ -54,7 +58,7 @@ int main() {
                     printf("\33[%dD\33[K", len - word_start);
                     break;
                 }
-                case CEOF: {
+                case EOFFF: {
                     if (line[0] == 0) { exit(0); }
                     break;
                 }
