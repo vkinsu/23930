@@ -41,8 +41,9 @@ void print_file_info(const char *path) {
     struct group *grp = getgrgid(file_stat.st_gid);
     printf("%s %s ", pwd ? pwd->pw_name : "?", grp ? grp->gr_name : "?");
 
-    if (S_ISREG(file_stat.st_mode)) {
+    if (S_ISREG(file_stat.st_mode) || S_ISDIR(file_stat.st_mode)) {
         printf("%ld ", (long)file_stat.st_size);
+        printf("%ld ", (long)file_stat.st_blocks);
     }
 
     char time_buf[20];
@@ -54,9 +55,10 @@ void print_file_info(const char *path) {
     printf("%s\n", base_name ? base_name + 1 : path);
 }
 
+
 int main(int argc, char *argv[]) {
     if (argc < 2) {
-        fprintf(stderr, "Usage: %s <file1> [file2 ...]\n", argv[0]);
+        fprintf(stderr, "Usage: %s <file/dir> [file/dir ...]\n", argv[0]);
         return 1;
     }
 
