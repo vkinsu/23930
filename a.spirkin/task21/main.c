@@ -7,7 +7,6 @@ int sigint_count = 0;
 
 void handle_sigint(int sig) {
     sigint_count++;
-    printf("SIGINT received (count: %d)\n", sigint_count);
     write(STDOUT_FILENO, "\a", 1);
 }
 
