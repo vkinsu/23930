@@ -18,7 +18,7 @@ int main() {
         char c;
         read(STDIN_FILENO, &c, 1);
         if (c == 4 && pos == 0) {break;}
-        if (c == 127) {
+        else if (c == 127) {
             if (pos > 0) {
                 (pos)--;
                 line[pos] = '\0';
@@ -29,7 +29,7 @@ int main() {
                 fflush(stdout);
             }
         }
-        if (c == 21) {
+        else if (c == 21) {
             while (pos > 0) {
                 (pos)--;
                 line[pos] = '\0';
@@ -37,7 +37,7 @@ int main() {
                 fflush(stdout);
             }
         }
-        if (c == 23) {
+        else if (c == 23) {
             while (pos > 0 && line[pos - 1] == ' ') {
                 (pos)--;
                 line[pos] = '\0';
@@ -51,7 +51,7 @@ int main() {
                 fflush(stdout);
             }
         }
-        if (c >= 32 && c <= 126) {
+        else if (c >= 32 && c <= 126) {
             if (pos < 40) {
                 line[pos++] = c;
                 putchar(c);
@@ -73,5 +73,3 @@ int main() {
     tcsetattr(STDIN_FILENO, TCSANOW, &old_tio);
     return 0;
 }
-
-
