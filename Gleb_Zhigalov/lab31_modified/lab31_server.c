@@ -91,9 +91,9 @@ int main() {
               buffer[j] = toupper(buffer[j]);
             }
 
-            for (int j = 0; j <= max_fd; j++) {
-              if (FD_ISSET(j, &master_fds) && j != server_fd && j != i) {
-                if (write(j, buffer, strlen(buffer)) == -1) {
+            for (int k = 0; k <= max_fd; k++) {
+              if (FD_ISSET(k, &master_fds) && k != server_fd && k != i) {
+                if (write(k, buffer, strlen(buffer)) == -1) {
                   perror("\nWriting to client error\n");
                 }
               }
