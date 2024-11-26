@@ -25,20 +25,15 @@ int main() {
         perror("connect");
         exit(EXIT_FAILURE);
     }
-    while(1){
-    printf("Enter a string to send to the server: ");
+
+    printf("Enter a message to send to the server: ");
     fgets(message, sizeof(message), stdin);
-    message[strcspn(message, "\n")] = '\0'; 
+    message[strcspn(message, "\n")] = '\0';
 
     if (write(sock_fd, message, strlen(message)) == -1) {
         perror("write");
-        exit(EXIT_FAILURE);
     }
-    if (strcmp(message, "exit") == 0){
-    	close(sock_fd);
- 	break;
-    }
-}
-return 0;
-}
 
+    close(sock_fd);
+    return 0;
+}

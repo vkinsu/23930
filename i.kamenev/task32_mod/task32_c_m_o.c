@@ -6,11 +6,11 @@
 #include <sys/un.h>
 
 #define SOCKET_PATH "./upper_case_socket"
+#define BUFFER_SIZE 1024
 
 int main() {
     int sock_fd;
     struct sockaddr_un server_addr;
-    char message[1024];
 
     if ((sock_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
         perror("socket");
@@ -25,20 +25,18 @@ int main() {
         perror("connect");
         exit(EXIT_FAILURE);
     }
-    while(1){
-    printf("Enter a string to send to the server: ");
-    fgets(message, sizeof(message), stdin);
-    message[strcspn(message, "\n")] = '\0'; 
 
-    if (write(sock_fd, message, strlen(message)) == -1) {
-        perror("write");
-        exit(EXIT_FAILURE);
+    char buffer[BUFFER_SIZE];
+    while (1) {
+        ssize_t num_bytes = read(sock_fd, buffer, sizeof(buffer) - 1);
+        if (num_bytes > 0) {
+            buffer[num_bytes] = '\0';
+            printf("Message from server: %s\n", buffer);
+        } else {
+            break;
+        }
     }
-    if (strcmp(message, "exit") == 0){
-    	close(sock_fd);
- 	break;
-    }
-}
-return 0;
-}
 
+    close(sock_fd);
+    return 0;
+}
