@@ -57,7 +57,7 @@ int main() {
     while ((bytes_read = read(client_fd, buffer, sizeof(buffer) - 1)) > 0) {
         buffer[bytes_read] = '\0';
         to_uppercase(buffer);
-        printf("Sended from client: %s\n", buffer);
+        printf("Received from client: %s\n", buffer);
     }
 
     if (bytes_read == -1) {
