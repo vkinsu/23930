@@ -66,5 +66,5 @@ int main() {
     close(server_fd);
     unlink(SOCKET_PATH);
 	printf("[S]Server stoped!\n");
-    return 0;
+    exit(0);
 }

@@ -45,5 +45,5 @@ int main() {
 
     close(sock_fd);
 	printf("[C]Client terminated!\n");
-    return 0;
+    exit(0);
 }
