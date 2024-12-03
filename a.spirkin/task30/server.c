@@ -7,7 +7,7 @@
 #include <sys/un.h>
 #include <ctype.h>
 
-#define SOCKET_PATH "/tmp/unix_socket"
+#define SOCKET_PATH "./socket"
 #define BUFFER_SIZE 1024
 
 void to_upper(char *str) {
@@ -22,12 +22,14 @@ int main() {
     socklen_t client_addr_len = sizeof(client_addr);
     char buffer[BUFFER_SIZE];
 
-    if ((server_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-        perror("socket");
-        exit(EXIT_FAILURE);
+    server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (server_fd == -1) {
+        perror("\nSocket making error\n");
+        exit(1);
     }
 
-    memset(&server_addr, 0, sizeof(server_addr));
+    unlink(SOCKET_PATH);
+
     server_addr.sun_family = AF_UNIX;
     strncpy(server_addr.sun_path, SOCKET_PATH, sizeof(server_addr.sun_path) - 1);
 
