@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define SOCKET_PATH "/tmp/unix_socket_example"
+#define SOCKET_PATH "/tmp/unix_socket_test"
 #define BUFFER_SIZE 1024
 
 int main() {
