@@ -106,8 +106,15 @@ int main() {
                     }
                 } else {
                     buffer[bytes_read] = '\0';
-                    to_uppercase(buffer);
                     printf("Received from client: %s\n", buffer);
+                    to_uppercase(buffer);
+                    if (write(client_fd, buffer, strlen(buffer)) == -1) {
+                        perror("write");
+                        close(client_fd);
+                        if (epoll_ctl(epoll_fd, EPOLL_CTL_DEL, client_fd, NULL) == -1) {
+                            perror("epoll_ctl: remove client_fd");
+                        }
+                    }
                 }
             }
         }

@@ -27,22 +27,46 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("Enter message to send on server ('exit' for closing the connection):\n");
+    printf("Enter initial message to send to server ('exit' to quit):\n");
     char buffer[BUFFER_SIZE];
 
+    printf("> ");
+    if (!fgets(buffer, sizeof(buffer), stdin)) {
+        close(client_fd);
+        return 0;
+    }
+
+    // Remove newline
+    buffer[strcspn(buffer, "\n")] = '\0';
+
+    if (strcmp(buffer, "exit") == 0) {
+        close(client_fd);
+        return 0;
+    }
+
+    // Initial send
+    if (write(client_fd, buffer, strlen(buffer)) == -1) {
+        perror("write");
+        close(client_fd);
+        return 0;
+    }
+
     while (1) {
-        printf("> ");
-        if (!fgets(buffer, sizeof(buffer), stdin)) {
+        // Receive response
+        ssize_t bytes_read = read(client_fd, buffer, sizeof(buffer) - 1);
+        if (bytes_read <= 0) {
+            if (bytes_read == 0) {
+                printf("Server disconnected.\n");
+            } else {
+                perror("read");
+            }
             break;
         }
+        buffer[bytes_read] = '\0';
 
-        // Removing newline character if present
-        buffer[strcspn(buffer, "\n")] = '\0';
+        printf("Server: %s\n", buffer);
 
-        if (strcmp(buffer, "exit") == 0) {
-            break;
-        }
-
+        // Send response back
         if (write(client_fd, buffer, strlen(buffer)) == -1) {
             perror("write");
             break;
@@ -50,6 +74,5 @@ int main() {
     }
 
     close(client_fd);
-    printf("Client termination.\n");
     return 0;
 }
