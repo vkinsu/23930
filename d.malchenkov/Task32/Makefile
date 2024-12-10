@@ -1,3 +1,3 @@
 all: 
-	gcc task32_server.c -o server -pthread
-	gcc task32_client.c -o client
+	gcc task32_server.c -o server 
+	gcc task32_client.c -o client 

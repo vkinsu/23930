@@ -2,129 +2,91 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <errno.h>
-#include <pthread.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <sys/un.h>
+#include <sys/epoll.h>
+#include <time.h>
+#include <sys/select.h>
 
-#define PORT 8080
+
+#define SOCKET_PATH "/tmp/task32_socket"
 #define BUFFER_SIZE 1024
+#define MAX_EVENTS 10
 
-// Функция для преобразования строки в верхний регистр
-void to_uppercase(char *str) {
-    for (int i = 0; str[i]; i++) {
-        str[i] = toupper((unsigned char)str[i]);
+void delay(int milliseconds) {
+    long pause;
+    clock_t now, then;
+
+    pause = milliseconds * (CLOCKS_PER_SEC / 1000);
+    now = then = clock();
+    while ((now - then) < pause) {
+        now = clock();
     }
 }
 
-// Структура для передачи информации в поток
 typedef struct {
     int client_fd;
-    struct sockaddr_in client_addr;
-} client_info_t;
+    int client_id;
+} client_info;
 
-// Функция обработки клиента
-void* handle_client(void* arg) {
-    client_info_t *client_info = (client_info_t*)arg;
-    int client_fd = client_info->client_fd;
-    char client_ip[INET_ADDRSTRLEN];
-
-    // Получение IP-адреса клиента
-    inet_ntop(AF_INET, &(client_info->client_addr.sin_addr), client_ip, INET_ADDRSTRLEN);
-    printf("Клиент подключен: %s:%d (сокет %d)\n",
-           client_ip,
-           ntohs(client_info->client_addr.sin_port),
-           client_fd);
-
+void handle_client(int client_fd, int client_id) {
     char buffer[BUFFER_SIZE];
-    ssize_t bytes_read;
-
-    // Чтение данных от клиента
-    while ((bytes_read = read(client_fd, buffer, sizeof(buffer) - 1)) > 0) {
-        buffer[bytes_read] = '\0';  // Завершение строки
-        to_uppercase(buffer);
-        printf("Клиент %d: %s\n", client_fd, buffer);
-    }
-
-    if (bytes_read == -1) {
-        perror("read");
+    int bytes = read(client_fd, buffer, sizeof(buffer));
+    if (bytes > 0) {
+        for (int i = 0; i < bytes; i++) {
+            buffer[i] = toupper(buffer[i]);
+        }
+        printf("Клиент %d отправил: ", client_id);
+        for (int i = 0; i < bytes; i++) {
+            putchar(buffer[i]);
+            fflush(stdout);
+            delay(10);
+        }
+        printf("\n");
     } else {
-        printf("Клиент %d отключился.\n", client_fd);
+        printf("Клиент %d отключился.\n", client_id);
+        close(client_fd);
     }
-
-    close(client_fd);
-    free(client_info);
-    pthread_exit(NULL);
 }
 
 int main() {
-    int server_fd, client_fd;
-    struct sockaddr_in server_addr, client_addr;
-    socklen_t addr_len = sizeof(client_addr);
-    pthread_t tid;
+    int server_fd, epoll_fd, client_fd;
+    struct sockaddr_un address;
+    struct epoll_event ev, events[MAX_EVENTS];
+    int client_ids[FD_SETSIZE];
+    int client_count = 0;
 
-    // Создание сокета
-    server_fd = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_fd == -1) {
-        perror("socket");
-        exit(EXIT_FAILURE);
+    for (int i = 0; i < FD_SETSIZE; i++) {
+        client_ids[i] = -1;
     }
 
-    // Настройка адреса сервера
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;  // Любой доступный интерфейс
-    server_addr.sin_port = htons(PORT);
+    server_fd = socket(AF_UNIX, SOCK_STREAM, 0);
+    memset(&address, 0, sizeof(address));
+    address.sun_family = AF_UNIX;
+    strncpy(address.sun_path, SOCKET_PATH, sizeof(address.sun_path) - 1);
+    unlink(SOCKET_PATH);
+    bind(server_fd, (struct sockaddr *)&address, sizeof(address));
+    listen(server_fd, 5);
 
-    // Привязка сокета
-    if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) == -1) {
-        perror("bind");
-        close(server_fd);
-        exit(EXIT_FAILURE);
-    }
-
-    // Прослушивание входящих соединений
-    if (listen(server_fd, SOMAXCONN) == -1) {
-        perror("listen");
-        close(server_fd);
-        exit(EXIT_FAILURE);
-    }
-
-    printf("Сервер ожидает соединений на порту %d...\n", PORT);
+    epoll_fd = epoll_create1(0);
+    ev.events = EPOLLIN;
+    ev.data.fd = server_fd;
+    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, server_fd, &ev);
 
     while (1) {
-        // Принятие нового соединения
-        client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &addr_len);
-        if (client_fd == -1) {
-            perror("accept");
-            continue;
+        int nfds = epoll_wait(epoll_fd, events, MAX_EVENTS, -1);
+        for (int n = 0; n < nfds; n++) {
+            if (events[n].data.fd == server_fd) {
+                client_fd = accept(server_fd, NULL, NULL);
+                client_ids[client_fd] = client_count++;
+                ev.events = EPOLLIN | EPOLLET;
+                ev.data.fd = client_fd;
+                epoll_ctl(epoll_fd, EPOLL_CTL_ADD, client_fd, &ev);
+                printf("Клиент %d подключился.\n", client_ids[client_fd]);
+            } else {
+                handle_client(events[n].data.fd, client_ids[events[n].data.fd]);
+            }
         }
-
-        // Выделение памяти для информации о клиенте
-        client_info_t *client_info = malloc(sizeof(client_info_t));
-        if (!client_info) {
-            perror("malloc");
-            close(client_fd);
-            continue;
-        }
-
-        client_info->client_fd = client_fd;
-        memcpy(&client_info->client_addr, &client_addr, sizeof(client_addr));
-
-        // Создание нового потока для обработки клиента
-        if (pthread_create(&tid, NULL, handle_client, (void*)client_info) != 0) {
-            perror("pthread_create");
-            close(client_fd);
-            free(client_info);
-            continue;
-        }
-
-        // Отсоединение потока, чтобы освободить ресурсы после завершения
-        pthread_detach(tid);
     }
-
-    close(server_fd);
-    return 0;
 }
