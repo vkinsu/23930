@@ -1,46 +1,67 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 
-#define SOCKET_PATH "./32_socket"
+#define SOCKET_PATH "./unix_domain_socket"
+#define BUFFER_SIZE 256
 
-int main() {
-    int client_fd;
-    struct sockaddr_un address;
-    char buffer[1024];
-
-    // Создаем сокет
-    client_fd = socket(AF_UNIX, SOCK_STREAM, 0); // потоковый сокет
-    if (client_fd == -1) {
-        perror("\nSocket making error\n");
-        exit(1);
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <filename> <delay>\n", argv[0]);
+        return EXIT_FAILURE;
     }
 
-    // Настраиваем адрес сокета
-    address.sun_family = AF_UNIX;
-    strncpy(address.sun_path, SOCKET_PATH, sizeof(address.sun_path) - 1);
+    char *filename = argv[1];
+    int delay = atoi(argv[2]);
 
-    // Устанавливаем соединение с сервером
-    if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) == -1) {
-        perror("\nConnection error\n");
-        close(client_fd);
-        exit(1);
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+        perror("fopen error");
+        return EXIT_FAILURE;
     }
 
-    while (fgets(buffer, sizeof(buffer), stdin)) {
-        // Отправляем текст серверу
-        if (write(client_fd, buffer, strlen(buffer)) == -1) {
-        perror("\nWriting error");
-        close(client_fd);
-        exit(1);
+    int client_socket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (client_socket == -1) {
+        perror("socket error");
+        fclose(fp);
+        return EXIT_FAILURE;
+    }
+
+    struct sockaddr_un server_address;
+    memset(&server_address, 0, sizeof(server_address));
+    server_address.sun_family = AF_UNIX;
+    strncpy(server_address.sun_path, SOCKET_PATH, sizeof(server_address.sun_path));
+
+    if (connect(client_socket, (struct sockaddr *)&server_address, sizeof(server_address)) == -1) {
+        perror("connect error");
+        close(client_socket);
+        fclose(fp);
+        return EXIT_FAILURE;
+    }
+
+    char buffer[BUFFER_SIZE];
+    while (1) {
+        if (fgets(buffer, BUFFER_SIZE, fp) != NULL) {
+            if (write(client_socket, buffer, strlen(buffer)) == -1) {
+                perror("write error");
+                close(client_socket);
+                fclose(fp);
+                return EXIT_FAILURE;
+            }
         }
+
+        if (feof(fp)) {
+            rewind(fp);
+        }
+
+        usleep(delay);
     }
 
-    // Закрываем сокет
-    close(client_fd);
-
-    return 0;
+    fclose(fp);
+    close(client_socket);
+    return EXIT_SUCCESS;
 }
