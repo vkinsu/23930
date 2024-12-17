@@ -1,46 +1,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
-#define SOCKET_PATH "./31_socket"
+#define SOCKET_PATH "unix_socket"
+#define BUFFER_SIZE 256
 
 int main() {
-    int client_fd;
-    struct sockaddr_un address;
-    char buffer[1024];
+	int sock_fd;
+	struct sockaddr_un server_addr;
+	char buffer[BUFFER_SIZE];
 
-    // Создаем сокет
-    client_fd = socket(AF_UNIX, SOCK_STREAM, 0); // потоковый сокет
-    if (client_fd == -1) {
-        perror("\nSocket making error\n");
-        exit(1);
-    }
+	if ((sock_fd = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		perror("Socket creation failed");
+		exit(EXIT_FAILURE);
+	}
 
-    // Настраиваем адрес сокета
-    address.sun_family = AF_UNIX;
-    strncpy(address.sun_path, SOCKET_PATH, sizeof(address.sun_path) - 1);
+	memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.sun_family = AF_UNIX;
+	strncpy(server_addr.sun_path, SOCKET_PATH, sizeof(server_addr.sun_path) - 1);
 
-    // Устанавливаем соединение с сервером
-    if (connect(client_fd, (struct sockaddr *)&address, sizeof(address)) == -1) {
-        perror("\nConnection error\n");
-        close(client_fd);
-        exit(1);
-    }
+	if (connect(sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) {
+		perror("Connect failed");
+		close(sock_fd);
+		exit(EXIT_FAILURE);
+	}
 
-    while (fgets(buffer, sizeof(buffer), stdin)) {
-        // Отправляем текст серверу
-        if (write(client_fd, buffer, strlen(buffer)) == -1) {
-        perror("\nWriting error");
-        close(client_fd);
-        exit(1);
-        }
-    }
+	printf("Connected to server. Enter text (Ctrl+C to exit):\n");
+		while (fgets(buffer, BUFFER_SIZE, stdin) != NULL) {
+			if (write(sock_fd, buffer, strlen(buffer)) == -1) {
+				perror("Write failed");
+				break;
+			}
+		}
 
-    // Закрываем сокет
-    close(client_fd);
-
-    return 0;
+	close(sock_fd);
+	return 0;
 }
